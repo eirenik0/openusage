@@ -26,6 +26,7 @@ How each provider signs in and what its card shows.
 | OpenCode | Device code (OpenCode Console) | Session, Weekly, Monthly |
 | OpenRouter | Management API key, or a standard API key | Balance, Today, Yesterday, This Week, This Month, Prior 30 Days, Key Limit, Budget, Free Requests |
 | Z.ai | API key | Session, Weekly, Web Searches, Limit Resets |
+| Mistral | Browser sign-in | Subscription Usage, API Usage |
 
 ## What you grant
 
@@ -234,6 +235,22 @@ The right-click menu adds a **Credits** link.
 - **Limit Resets** counts the banked Session and Weekly resets. Click the count to see them in one
   list, each titled Session Reset or Weekly Reset. **Use** spends the earliest of each kind.
 - The right-click menu adds an **API Keys** link.
+
+## Mistral
+
+- Choose Mistral in Accounts and continue in your browser. This uses Mistral's
+  [Vibe browser sign-in](https://docs.mistral.ai/vibe/code/cli/install-setup), which provisions a
+  workspace API key; it is not OAuth. OpenUsage stores the issued key only in its own Keychain.
+- Subscription Usage reads the Vibe allowance from `vibe_budget`; API Usage reads the separate
+  `api_budget` in `GET https://api.mistral.ai/v1/billing/budget`. Each shows Mistral's consumed
+  percentage and reset date. A zero reading still shows; a budget Mistral does not report stays hidden.
+- The plan name comes from `GET /v1/billing/subscription`, read once an hour and on a forced refresh.
+  These budgets are usage allowances, not the subscription's purchase price. OpenUsage does not
+  calculate monetary spend from a percentage or model prices.
+- The workspace must permit reading organization usage (`see_org_inference_usage`). A refused
+  permission or malformed budget surfaces as an account-specific error, not zero usage.
+- Sign In Again replaces a revoked browser-issued key. No credentials are imported from Vibe or
+  any other tool, and OpenUsage never makes inference requests.
 
 ## Errors
 

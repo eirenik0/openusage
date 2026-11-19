@@ -196,6 +196,7 @@ enum DemoFactory {
         case .opencodeGo: ["Go", "Go Plus", "Go Teams"]
         case .openrouter: ["Pay As You Go"]
         case .zai: ["Lite", "Pro", "Max"]
+        case .mistral: ["Enterprise"]
         }
     }
 

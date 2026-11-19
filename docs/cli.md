@@ -12,7 +12,7 @@ openusage codex@1a2b3c4d   # one account, by its id
 
 - The argument is an account id (the `providers` key in the output) or a provider kind: `claude`,
   `codex`, `cursor`, `amp`, `antigravity`, `copilot`, `devin`, `grok`, `muse`, `ollama`, `opencode`,
-  `openrouter`, `zai`. Anything else is an error.
+  `openrouter`, `zai`, `mistral`. Anything else is an error.
 - `--force` from 0.7.x is accepted and does nothing. The command says so on stderr.
 
 ## Install on `PATH`
@@ -78,7 +78,8 @@ openusage codex@1a2b3c4d   # one account, by its id
 Each resource is one value with a `unit`:
 
 - `kind` is `consumption` (`used`) or `balance` (`available`).
-- Bounded consumption adds `limit`, `remaining`, and a 0–1 `utilization`.
+- Bounded consumption adds `limit`, `remaining`, and `utilization` (`used / limit`).
+  Utilization normally ranges from 0 to 1, but can exceed 1 when the provider reports overage.
 - `resetsAt`, `windowSeconds`, and `expiresAt` (a list of instants for a balance of resets) appear
   only when the provider supplies them.
 - A resource with no current value is left out, not shown as zero.
@@ -107,7 +108,11 @@ account's right-click menu.
 | OpenCode | `session`, `weekly`, `monthly` |
 | OpenRouter | `balance`, `keyLimit` |
 | Z.ai | `session`, `weekly`, `webSearches`, `rateLimitResets` |
+| Mistral | `subscriptionUsage`, `monthlyUsage` |
 
+- Mistral `subscriptionUsage` is the Vibe/subscription allowance and `monthlyUsage` is the API
+  allowance. Browser sign-in exports provider-reported usage percentages and reset dates, not the
+  subscription's purchase price or estimated monetary spend.
 - ChatGPT `credits` is `0` when the balance is empty, and absent when ChatGPT reports no balance.
 - Antigravity `argonWeekly` is the Gemini 4 Argon weekly quota, absent when the account has none.
 - Charts, subtitles, badges, layout, and spend periods (such as OpenRouter's today, week, and month)
