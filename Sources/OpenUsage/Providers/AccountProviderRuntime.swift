@@ -90,7 +90,7 @@ final class AccountProviderRuntime: ProviderRuntime {
             items = expiries.map { ResetItem(kind: .full, expiresAt: $0, claim: .codexCredit($0)) }
         case .zai:
             items = ZAIResetsMapper.items(unexpiredZAIResets ?? [])
-        case .cursor, .amp, .antigravity, .copilot, .devin, .grok, .muse, .ollama, .opencodeGo, .openrouter:
+        case .cursor, .amp, .antigravity, .copilot, .devin, .grok, .muse, .ollama, .opencodeGo, .openrouter, .mistral:
             return nil
         }
         return ResetClaimService(accountID: account.cardID, items: items, claimReset: { [self] claim, requestID in
@@ -106,7 +106,7 @@ final class AccountProviderRuntime: ProviderRuntime {
         switch account.kind {
         case .claude: restoreClaude(snapshot)
         case .muse: museLastKnown = snapshot.lines
-        case .codex, .cursor, .amp, .antigravity, .copilot, .devin, .grok, .ollama, .opencodeGo, .openrouter, .zai: break
+        case .codex, .cursor, .amp, .antigravity, .copilot, .devin, .grok, .ollama, .opencodeGo, .openrouter, .zai, .mistral: break
         }
     }
 
@@ -163,6 +163,7 @@ final class AccountProviderRuntime: ProviderRuntime {
             case .opencodeGo: try await refreshOpenCode(credential)
             case .openrouter: try await refreshOpenRouter(credential)
             case .zai: try await refreshZAI(credential)
+            case .mistral: try await refreshMistral(credential)
             }
         } catch ProviderError.signInExpired {
             throw refusedCredential

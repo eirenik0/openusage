@@ -11,6 +11,7 @@ enum DeviceCodePoller {
     static func poll<Value: Sendable>(
         interval: TimeInterval,
         expiresIn: TimeInterval,
+        expirationMessage: String = "Device sign-in expired.",
         now: @escaping @Sendable () -> Date = Date.init,
         sleep: @escaping @Sendable (TimeInterval) async throws -> Void = { seconds in
             try await Task.sleep(for: .seconds(seconds))
@@ -43,6 +44,6 @@ enum DeviceCodePoller {
             }
             try await sleep(min(delay, max(0, deadline.timeIntervalSince(now()))))
         }
-        throw networkError ?? LoginError.failed("Device sign-in expired.")
+        throw networkError ?? LoginError.failed(expirationMessage)
     }
 }

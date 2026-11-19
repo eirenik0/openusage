@@ -75,7 +75,11 @@ struct URLSessionHTTPClient: HTTPClient {
 
     static func diagnostic(for request: HTTPRequest, response: HTTPResponse, duration: Duration) -> String {
         let milliseconds = Int((duration / .milliseconds(1)).rounded())
-        let endpoint = (request.url.host() ?? "") + request.url.path()
+        // Mistral's browser sign-in puts its secret polling token in the path, not the query.
+        // Never include that path segment (or process identifiers) in HTTP diagnostics.
+        let path = request.url.host() == "console.mistral.ai" && request.url.path().hasPrefix("/api/vibe/sign-in/")
+            ? "/api/vibe/sign-in/<redacted>" : request.url.path()
+        let endpoint = (request.url.host() ?? "") + path
         return "\(request.method) \(endpoint) -> \(response.statusCode) (\(milliseconds) ms)"
     }
 }

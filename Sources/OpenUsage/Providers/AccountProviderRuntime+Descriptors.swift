@@ -167,6 +167,13 @@ extension AccountProviderRuntime {
                 .boundedDollars(key: "budget", provider: provider, title: "Budget", limit: 100),
                 .boundedCount(key: "freeRequests", provider: provider, title: "Free Requests", limit: 50)
             ]
+        case .mistral:
+            [
+                .percent(key: "subscription", provider: provider, title: "Monthly", metricLabel: "Subscription Usage")
+                    .exportingLimit("subscriptionUsage", unit: "percent"),
+                .percent(key: "monthly", provider: provider, title: "API Usage", metricLabel: "Monthly Usage")
+                    .exportingLimit("monthlyUsage", unit: "percent", source: .progressOrValue(kind: .dollars))
+            ]
         case .zai:
             [
                 .percent(key: "session", provider: provider, title: "Session")
