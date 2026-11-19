@@ -26,7 +26,7 @@ How each provider signs in and what its card shows.
 | OpenCode | Device code (OpenCode Console) | Session, Weekly, Monthly |
 | OpenRouter | Management API key, or a standard API key | Balance, Today, Yesterday, This Week, This Month, Prior 30 Days, Key Limit, Budget, Free Requests |
 | Z.ai | API key | Session, Weekly, Web Searches, Limit Resets |
-| Mistral | Browser sign-in | Subscription Usage, API Usage |
+| Mistral | Browser sign-in | Monthly, API Usage |
 
 ## What you grant
 
@@ -241,9 +241,11 @@ The right-click menu adds a **Credits** link.
 - Choose Mistral in Accounts and continue in your browser. This uses Mistral's
   [Vibe browser sign-in](https://docs.mistral.ai/vibe/code/cli/install-setup), which provisions a
   workspace API key; it is not OAuth. OpenUsage stores the issued key only in its own Keychain.
-- Subscription Usage reads the Vibe allowance from `vibe_budget`; API Usage reads the separate
+- Monthly reads the Vibe/subscription allowance from `vibe_budget`; API Usage reads the separate
   `api_budget` in `GET https://api.mistral.ai/v1/billing/budget`. Each shows Mistral's consumed
   percentage and reset date. A zero reading still shows; a budget Mistral does not report stays hidden.
+- Usage refreshes every five minutes. Percentages display as whole numbers, so the shown value can
+  stay unchanged while the underlying usage changes; the CLI export retains fractional precision.
 - The plan name comes from `GET /v1/billing/subscription`, read once an hour and on a forced refresh.
   These budgets are usage allowances, not the subscription's purchase price. OpenUsage does not
   calculate monetary spend from a percentage or model prices.

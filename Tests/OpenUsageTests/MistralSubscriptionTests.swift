@@ -52,7 +52,7 @@ final class MistralSubscriptionRuntimeTests: XCTestCase {
         let store = WidgetDataStore.forTesting([runtime], defaults: isolatedDefaults())
         store.snapshots[runtime.provider.id] = snapshot
         let shown = runtime.widgetDescriptors.map { store.data(for: $0) }.filter(\.hasData)
-        XCTAssertEqual(shown.map(\.title), ["Subscription Usage", "API Usage"])
+        XCTAssertEqual(shown.map(\.title), ["Monthly", "API Usage"])
         XCTAssertEqual(shown.map(\.used), [42.5, 12.5])
         XCTAssertTrue(shown.allSatisfy { $0.kind == .percent && $0.limit == 100 && $0.resetsAt != nil })
         let root = try XCTUnwrap(JSONSerialization.jsonObject(with: LimitsEnvelope.encode(.init(
@@ -82,6 +82,49 @@ final class MistralSubscriptionRuntimeTests: XCTestCase {
             let shown = runtime.widgetDescriptors.filter { store.data(for: $0).hasData }
             XCTAssertEqual(shown.map(\.key), field == "vibe_budget" ? ["subscription"] : ["monthly"])
         }
+    }
+
+    func testAutomaticAndForcedRefreshReplaceRawUsageEvenWhenTheRoundedPercentIsUnchanged() async throws {
+        let clock = TestClock(Date())
+        let reads = TestSwitch(0)
+        let account = Account(kind: .mistral, label: "Fixture")
+        let vault = InMemoryCredentialVault()
+        try vault.save(.oauth(OAuthTokens(accessToken: "fixture-key", extras: [MistralLogin.browserKey: "true"])), for: account.id)
+        let http = RoutingHTTPClient { request in
+            if request.url.path == "/v1/billing/subscription" { return .json(#"{"plan_name":"INDIVIDUAL"}"#) }
+            XCTAssertEqual(request.url.path, "/v1/billing/budget")
+            reads.value += 1
+            let used = [66.71, 66.79, 67.2][min(reads.value - 1, 2)]
+            return .json(MistralBrowserLoginTests.budget.replacingOccurrences(of: "42.5", with: String(used)))
+        }
+        let runtime = AccountProviderRuntime(account: account, vault: vault, http: http, now: { clock.now })
+        let store = WidgetDataStore.forTesting([runtime], defaults: isolatedDefaults(), now: { clock.now })
+        store.meterStyle = .remaining
+        let descriptor = try XCTUnwrap(runtime.widgetDescriptors.first)
+        let first = await store.refresh(providerID: runtime.provider.id)
+        XCTAssertEqual(first, .refreshed)
+        XCTAssertEqual(store.data(for: descriptor).title, "Monthly")
+        XCTAssertEqual(store.data(for: descriptor).used, 66.71)
+        XCTAssertEqual(store.data(for: descriptor).valueText, "33%")
+
+        let capturedAt = try XCTUnwrap(store.snapshots[runtime.provider.id]).refreshedAt
+        clock.set(capturedAt.addingTimeInterval(1))
+        let cached = await store.refresh(providerID: runtime.provider.id)
+        XCTAssertEqual(cached, .cacheHit)
+        XCTAssertEqual(reads.value, 1)
+        clock.set(capturedAt.addingTimeInterval(RefreshSetting.interval + 1))
+        let automatic = await store.refresh(providerID: runtime.provider.id)
+        XCTAssertEqual(automatic, .refreshed)
+        XCTAssertEqual(reads.value, 2)
+        XCTAssertEqual(store.data(for: descriptor).used, 66.79)
+        XCTAssertEqual(store.data(for: descriptor).valueText, "33%")
+
+        let forced = await store.refresh(providerID: runtime.provider.id, force: true, rereadHourly: true)
+        XCTAssertEqual(forced, .refreshed)
+        XCTAssertEqual(reads.value, 3)
+        XCTAssertEqual(store.data(for: descriptor).used, 67.2)
+        XCTAssertEqual(store.data(for: descriptor).valueText, "33%")
+        XCTAssertEqual(http.requests.filter { $0.url.path.hasSuffix("/subscription") }.count, 2)
     }
 
     func testBrowserRuntimeReadsBothBudgetsAndCachesTheSubscriptionName() async throws {

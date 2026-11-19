@@ -3,7 +3,7 @@ import Foundation
 /// GET /v1/admin/spend-limit, as documented by https://docs.mistral.ai/openapi.yaml.
 /// Only the provider's total is used: no summing partial usage or applying price catalogs.
 enum MistralUsageMapper {
-    /// Display order is defined by widgetDescriptors: Subscription Usage, then API Usage.
+    /// Display order is defined by widgetDescriptors: Monthly, then API Usage.
     /// A missing API allocation must not hide an available subscription allocation (or vice versa).
     static func browserBudgets(_ body: Data, plan: String? = nil) throws -> ProviderUsage {
         let budget = try MistralBudget.decode(body)

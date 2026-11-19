@@ -22,9 +22,11 @@ final class MistralRenderingTests: XCTestCase {
             )))
             let bitmap = try XCTUnwrap(NSBitmapImageRep(data: png))
             let text = try recognizedLines(in: XCTUnwrap(bitmap.cgImage)).joined(separator: "\n").lowercased()
-            let subscription = try XCTUnwrap(text.range(of: "subscription"), text)
-            let api = try XCTUnwrap(text.range(of: "api"), text)
-            XCTAssertLessThan(subscription.lowerBound, api.lowerBound, "The subscription row must render before the API row")
+            let subscription = try XCTUnwrap(text.range(of: "monthly"), text)
+            // Vision can read the short API acronym as Cyrillic; Usage uniquely identifies its row.
+            // The runtime test separately asserts both complete titles exactly.
+            let api = try XCTUnwrap(text.range(of: "usage"), text)
+            XCTAssertLessThan(subscription.lowerBound, api.lowerBound, "The Monthly row must render before the API row")
             XCTAssertTrue(text.contains("mistral"), text)
             // Optional, explicit fixture-only exports for PR screenshots. No real account data.
             if let directory = ProcessInfo.processInfo.environment["OPENUSAGE_MISTRAL_SCREENSHOT_DIR"] {

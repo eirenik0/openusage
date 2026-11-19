@@ -169,7 +169,7 @@ extension AccountProviderRuntime {
             ]
         case .mistral:
             [
-                .percent(key: "subscription", provider: provider, title: "Subscription Usage")
+                .percent(key: "subscription", provider: provider, title: "Monthly", metricLabel: "Subscription Usage")
                     .exportingLimit("subscriptionUsage", unit: "percent"),
                 .percent(key: "monthly", provider: provider, title: "API Usage", metricLabel: "Monthly Usage")
                     .exportingLimit("monthlyUsage", unit: "percent", source: .progressOrValue(kind: .dollars))
